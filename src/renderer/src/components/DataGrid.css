@@ -1,0 +1,61 @@
+/* ── Data Grid ──────────────────────────────────────────────── */
+
+.datagrid-wrapper {
+  flex: 1;
+  overflow: auto;
+}
+
+.datagrid {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.datagrid thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.datagrid th {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-primary);
+  white-space: nowrap;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.datagrid td {
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--border-primary);
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.datagrid tbody tr:hover td {
+  background: var(--bg-hover);
+}
+
+.datagrid-row-num {
+  width: 40px;
+  text-align: right;
+  color: var(--text-muted) !important;
+  font-size: 11px;
+  user-select: none;
+}
+
+/* NULL cells */
+.cell-null {
+  color: var(--text-muted) !important;
+  font-style: italic;
+  opacity: 0.7;
+}
