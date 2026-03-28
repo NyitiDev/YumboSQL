@@ -8,10 +8,40 @@
 }
 
 /* Tabs */
-.panel-tabs {
+.panel-tabs-bar {
   display: flex;
+  align-items: stretch;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
+  min-height: 0;
+}
+
+.tabs-scroll-btn {
+  flex-shrink: 0;
+  width: 24px;
+  background: var(--bg-secondary);
+  border: none;
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+  margin-bottom: -1px;
+}
+
+.tabs-scroll-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.panel-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
   padding: 0 8px;
   gap: 2px;
   overflow-x: auto;

@@ -1,20 +1,12 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import SqlEditor from './SqlEditor';
 import DataGrid from './DataGrid';
 import { useI18n } from '../i18n/I18nContext';
 import './MainPanel.css';
 
-export default function MainPanel({ defaultConnId, connections, tabs, activeTabId, onSelectTab, onCloseTab, onOpenTab }) {
-  const { t } = useI18n();
-  const [queryResult, setQueryResult] = useState(null);
-  const [queryError, setQueryError] = useState(null);
-  const [queryTime, setQueryTime] = useState(null);
-  // connId used by the SQL editor tab (can be selected when multiple connections exist)
-  const [editorConnId, setEditorConnId] = useState(defaultConnId);
-  const editorRefs = useRef({});
-  const [editorFraction, setEditorFraction] = useState(0.4);
+function useSplitPane(defaultFraction = 0.4) {
+  const [fraction, setFraction] = useState(defaultFraction);
   const layoutRef = useRef(null);
-
   const handleDividerMouseDown = useCallback((e) => {
     e.preventDefault();
     const layout = layoutRef.current;
@@ -22,7 +14,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
     const onMouseMove = (mv) => {
       const rect = layout.getBoundingClientRect();
       const ratio = (mv.clientY - rect.top) / rect.height;
-      setEditorFraction(Math.min(0.85, Math.max(0.1, ratio)));
+      setFraction(Math.min(0.85, Math.max(0.1, ratio)));
     };
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
@@ -34,6 +26,53 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
     document.body.style.userSelect = 'none';
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+  }, []);
+  return { fraction, layoutRef, handleDividerMouseDown };
+}
+
+export default function MainPanel({ defaultConnId, connections, tabs, activeTabId, onSelectTab, onCloseTab, onOpenTab }) {
+  const { t } = useI18n();
+  const [queryResult, setQueryResult] = useState(null);
+  const [queryError, setQueryError] = useState(null);
+  const [queryTime, setQueryTime] = useState(null);
+  // connId used by the SQL editor tab (can be selected when multiple connections exist)
+  const [editorConnId, setEditorConnId] = useState(defaultConnId);
+  const editorRefs = useRef({});
+  const { fraction: editorFraction, layoutRef, handleDividerMouseDown } = useSplitPane(0.4);
+  const tabsScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollButtons = useCallback(() => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    updateScrollButtons();
+    el.addEventListener('scroll', updateScrollButtons);
+    const ro = new ResizeObserver(updateScrollButtons);
+    ro.observe(el);
+    return () => { el.removeEventListener('scroll', updateScrollButtons); ro.disconnect(); };
+  }, [updateScrollButtons]);
+
+  // Auto-scroll active tab into view
+  useEffect(() => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const activeBtn = el.querySelector('.panel-tab.active');
+    if (activeBtn) activeBtn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    updateScrollButtons();
+  }, [activeTabId, tabs, updateScrollButtons]);
+
+  const scrollTabs = useCallback((dir) => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * 160, behavior: 'smooth' });
   }, []);
 
   // Keep editorConnId in sync: if the current one disconnects, fall back to first available
@@ -78,27 +117,39 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
   return (
     <div className="main-panel">
       {/* Tabs */}
-      <div className="panel-tabs">
-        <button
-          className={`panel-tab ${isEditorActive ? 'active' : ''}`}
-          onClick={() => onSelectTab('editor')}
-        >
-          {t('panel.tab_sql_editor')}
-        </button>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`panel-tab ${activeTabId === tab.id ? 'active' : ''}`}
-            onClick={() => onSelectTab(tab.id)}
-          >
-            <span className="tab-label">{tab.label}</span>
-            <span
-              className="tab-close"
-              onClick={(e) => { e.stopPropagation(); onCloseTab(tab.id); }}
-              title={t('panel.tab_close_title')}
-            >✕</span>
+      <div className="panel-tabs-bar">
+        {canScrollLeft && (
+          <button className="tabs-scroll-btn" onClick={() => scrollTabs(-1)} aria-label="Scroll tabs left">
+            ‹
           </button>
-        ))}
+        )}
+        <div className="panel-tabs" ref={tabsScrollRef}>
+          <button
+            className={`panel-tab ${isEditorActive ? 'active' : ''}`}
+            onClick={() => onSelectTab('editor')}
+          >
+            {t('panel.tab_sql_editor')}
+          </button>
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`panel-tab ${activeTabId === tab.id ? 'active' : ''}`}
+              onClick={() => onSelectTab(tab.id)}
+            >
+              <span className="tab-label">{tab.label}</span>
+              <span
+                className="tab-close"
+                onClick={(e) => { e.stopPropagation(); onCloseTab(tab.id); }}
+                title={t('panel.tab_close_title')}
+              >✕</span>
+            </button>
+          ))}
+        </div>
+        {canScrollRight && (
+          <button className="tabs-scroll-btn" onClick={() => scrollTabs(1)} aria-label="Scroll tabs right">
+            ›
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -275,6 +326,7 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
   const [queryResult, setQueryResult] = useState(null);
   const [queryError, setQueryError] = useState(null);
   const [queryTime, setQueryTime] = useState(null);
+  const { fraction, layoutRef: splitRef, handleDividerMouseDown } = useSplitPane(0.4);
 
   React.useEffect(() => {
     setLoading(true);
@@ -303,8 +355,11 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
   }
 
   return (
-    <div className="editor-layout">
-      <SqlEditor ref={editorRef} onRun={handleRunQuery} onSave={onSave} initialValue={ddl || ''} />
+    <div className="editor-layout" ref={splitRef}>
+      <div className="editor-top" style={{ flex: `0 0 ${(fraction * 100).toFixed(2)}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <SqlEditor ref={editorRef} onRun={handleRunQuery} onSave={onSave} initialValue={ddl || ''} />
+      </div>
+      <div className="panel-divider" onMouseDown={handleDividerMouseDown} />
       <div className="results-area">
         {queryError && (
           <div className="query-error">
@@ -332,9 +387,11 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
 
 /* Script tab – generated SQL template */
 function ScriptView({ connId, tab, editorRef, onSave }) {
+  const { t } = useI18n();
   const [queryResult, setQueryResult] = useState(null);
   const [queryError, setQueryError] = useState(null);
   const [queryTime, setQueryTime] = useState(null);
+  const { fraction, layoutRef: splitRef, handleDividerMouseDown } = useSplitPane(0.4);
 
   const handleRunQuery = async (sql) => {
     setQueryError(null);
@@ -351,8 +408,11 @@ function ScriptView({ connId, tab, editorRef, onSave }) {
   };
 
   return (
-    <div className="editor-layout">
-      <SqlEditor ref={editorRef} onRun={handleRunQuery} onSave={onSave} initialValue={tab.initialSql || ''} />
+    <div className="editor-layout" ref={splitRef}>
+      <div className="editor-top" style={{ flex: `0 0 ${(fraction * 100).toFixed(2)}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <SqlEditor ref={editorRef} onRun={handleRunQuery} onSave={onSave} initialValue={tab.initialSql || ''} />
+      </div>
+      <div className="panel-divider" onMouseDown={handleDividerMouseDown} />
       <div className="results-area">
         {queryError && (
           <div className="query-error">

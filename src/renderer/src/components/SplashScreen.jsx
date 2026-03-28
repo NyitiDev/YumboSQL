@@ -12,7 +12,7 @@ export default function SplashScreen({ onContinue }) {
   return (
     <div className="splash">
       <div className="splash-logo-wrap">
-        <img src="/logo_transparent.png" alt="YumboSQL" className="splash-logo" />
+        <img src="./logo_transparent.png" alt="YumboSQL" className="splash-logo" />
       </div>
       <div className="splash-text">
         <h1 className="splash-title">YumboSQL</h1>

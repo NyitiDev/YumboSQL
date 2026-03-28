@@ -67,6 +67,7 @@
 - [x] Átméretezhető sidebar (drag handle, 180–600px)
 - [x] Jobb-klikk helyi menü táblákra (Adatok listája, Táblaszerkezet, **Új rekord**, SQL almenü, Frissítés)
 - [x] SQL almenü: SELECT, INSERT, UPDATE, ALTER, CREATE sablonok (idézőjelezett oszlopnevekkel)
+- [x] **CREATE script: teljes tábla-objektum összegyűjtés** (sequences, constraints, indexes, triggers – `getCompleteCreateScript` backend metódus)
 - [x] Séma-szintű objektumcsoport helyi menü (Létrehozás + Frissítés) – minden típusra
 - [x] Tábla al-objektum csoport helyi menü (Létrehozás + Frissítés)
 - [x] Dupla-kattintás tábla al-objektumokra → ALTER script új lapfülön
@@ -82,6 +83,8 @@
 - [x] Aktív sor kiemelése, kék kurzor
 - [x] Code folding, selection highlighting
 - [x] Tab állapot megőrzése (display:none megközelítés – CodeMirror nem veszíti el a tartalmat)
+- [x] **Húzható vízszintes elválasztó minden editor fülön** (SQL Editor, Structure, Script – `useSplitPane` hook)
+- [x] **Görgetős lapfül sáv** – ‹ › nyilakkal navigálható, ha sok fül van nyitva (auto-scroll aktív fülre)
 - [ ] Automatikus kiegészítés (táblák, oszlopok, függvények)
 - [ ] Lekérdezés-előzmény (history)
 - [ ] EXPLAIN / EXPLAIN ANALYZE megjelenítés
@@ -138,7 +141,9 @@
 - [x] macOS natív ablakkezelés (hiddenInset titlebar) ✅
 - [x] **Splash screen** – logóval, alcímmel, „Tovább" gombbal; `NoLogo` indítási paraméter kihagyja ✅
 - [x] **macOS főmenü neve** → YumboSQL (`app.setName`) ✅
-- [x] **Húzható vízszintes elválasztó** az SQL editor és az eredménypanel között ✅
+- [x] **Húzható vízszintes elválasztó** minden editor fülön (SQL Editor, Structure, Script) ✅
+- [x] **Görgetős lapfül sáv** – ‹ › nyilakkal, auto-scroll aktív fülre ✅
+- [x] **macOS dock ikon** – logo_transparent.png (extraResources) ✅
 - [ ] Light Mode támogatás
 - [ ] macOS natív billentyűkombinációk (bővítés)
 - [ ] Drag & drop táblák között
@@ -182,7 +187,7 @@
 │  └───────────────────────────────────────────────────────┘ │
 │                          │ IPC (contextBridge)             │
 │  ┌────────── Main Process ─────────────────────────────┐  │
-│  │  preload.js ──► window.yumbosql API (~26 metódus)   │  │
+│  │  preload.js ──► window.yumbosql API (~28 metódus)   │  │
 │  │                                                      │  │
 │  │  services/database.js  ──► pg.Pool (max: 5)         │  │
 │  │  services/keychain.js  ──► keytar (macOS Keychain)  │  │

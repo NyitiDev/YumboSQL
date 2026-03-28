@@ -38,6 +38,14 @@
   flex-shrink: 0;
 }
 
+.sidebar-tagline {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+}
+
 .sidebar-conninfo {
   display: flex;
   flex-direction: column;

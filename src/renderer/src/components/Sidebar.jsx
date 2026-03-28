@@ -131,13 +131,8 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
         break;
       }
       case 'create': {
-        const colDefs = cols.map((c) => {
-          let def = `  "${c.name}" ${c.type}`;
-          if (c.nullable === 'NO') def += ' NOT NULL';
-          if (c.default_value) def += ` DEFAULT ${c.default_value}`;
-          return def;
-        });
-        sql = `CREATE TABLE ${fqn} (\n${colDefs.join(',\n')}\n);\n`;
+        const res = await window.yumbosql.getCompleteCreateScript(connId, schema, table);
+        sql = res.success ? res.data : `-- Error: ${res.error}`;
         break;
       }
     }
@@ -209,14 +204,8 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
   return (
     <aside className="sidebar" style={{ width: width || 280 }}>
       <div className="sidebar-header">
-        <img src="/logo_transparent.png" alt="YumboSQL" className="sidebar-logo" />
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={onAddConnection}
-          title={t('sidebar.add_host_title')}
-        >
-          {t('sidebar.add_host_btn')}
-        </button>
+        <img src="./logo_transparent.png" alt="YumboSQL" className="sidebar-logo" />
+        <span className="sidebar-tagline">PostgreSQL Admin and SQL developer tool</span>
       </div>
 
       <div className="sidebar-tree">

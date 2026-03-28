@@ -27,6 +27,8 @@ contextBridge.exposeInMainWorld('yumbosql', {
     ipcRenderer.invoke('db:get-table-data', connId, schema, table, limit, offset),
   getTableDDL: (connId, schema, table) =>
     ipcRenderer.invoke('db:get-table-ddl', connId, schema, table),
+  getCompleteCreateScript: (connId, schema, table) =>
+    ipcRenderer.invoke('db:get-complete-create-script', connId, schema, table),
 
   // Object Explorer – extended
   getFunctions: (connId, schema) => ipcRenderer.invoke('db:get-functions', connId, schema),

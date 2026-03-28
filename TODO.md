@@ -53,6 +53,7 @@
 - [x] Átméretezhető sidebar (drag handle, min 180px, max 600px)
 - [x] Jobb-klikk helyi menü táblákra (Adatok listája, Táblaszerkezet, SQL almenü, Frissítés)
 - [x] SQL almenü: SELECT, INSERT, UPDATE, ALTER, CREATE sablonok
+- [x] **CREATE script: teljes tábla-objektum összegyűjtés** (sequences, constraints, indexes, triggers)
 - [x] SQL sablonok idézőjelezett oszlopnevekkel (PostgreSQL kompatibilis)
 - [x] Séma-szintű objektumcsoport helyi menü (Létrehozás + Frissítés)
 - [x] Tábla al-objektum csoport helyi menü (Létrehozás + Frissítés) – oszlopok, indexek, constraintek, triggerek
@@ -69,6 +70,8 @@
 - [x] Több lekérdezési lap (multi-tab rendszer: editor, table, structure, script)
 - [x] SQL mentése fájlba (Cmd+S, natív fájlmentő dialógus)
 - [x] Tab állapot megőrzése (display:none – CodeMirror nem veszíti el tartalmát)
+- [x] **Húzható vízszintes elválasztó minden editor fülön** (SQL Editor, Structure, Script – `useSplitPane` hook)
+- [x] **Görgetős lapfül sáv** – ‹ › nyilakkal navigálható, ha sok fül van nyitva (auto-scroll aktív fülre)
 - [x] Tab címkék: típus + séma.tábla + fúnkciónév (pl. "📝 public.USER INSERT")
 - [x] Tab deduplikáció: table és structure tabok újrafelhasználása, script tabok mindig újak
 - [x] Aktív sor kiemelése, kék kurzor, code folding, selection highlighting
@@ -188,6 +191,10 @@
 - [x] Átméretezhető sidebar (drag handle, 180–600px)
 - [x] Multi-tab rendszer (editor, table, structure, script lapfülek)
 - [x] Tab állapot megőrzése (display:none – editor tartalom nem veszik el)
+- [x] **Húzható vízszintes elválasztó mindegyik editor fülön** (useSplitPane hook)
+- [x] **Görgetős lapfül sáv** nyilakkal, auto-scroll
+- [x] **macOS dock ikon** (logo_transparent.png via extraResources)
+- [x] **Sidebar tagline** ("PostgreSQL Admin and SQL developer tool")
 - [ ] Light Mode támogatás
 - [ ] macOS rendszer témájához igazodás
 - [ ] Drag & drop táblák az Object Explorerben
@@ -227,7 +234,7 @@
 
 ---
 
-*Utolsó frissítés: 2026. március 25.*
+*Utolsó frissítés: 2026. március 28.*
 
 ---
 

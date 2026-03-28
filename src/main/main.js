@@ -40,7 +40,10 @@ function createWindow() {
 
   // macOS dock icon (in dev mode the Electron default icon is shown otherwise)
   if (process.platform === 'darwin' && app.dock) {
-    app.dock.setIcon(path.join(__dirname, '..', '..', 'logo_transparent.png'));
+    const logoPath = isDev
+      ? path.join(__dirname, '..', '..', 'logo_transparent.png')
+      : path.join(process.resourcesPath, 'logo_transparent.png');
+    app.dock.setIcon(logoPath);
   }
 
   const isSplash = !noLogo;
@@ -49,7 +52,7 @@ function createWindow() {
     height:    isSplash ? SPLASH_HEIGHT : MAIN_HEIGHT,
     minWidth:  isSplash ? SPLASH_WIDTH  : 900,
     minHeight: isSplash ? SPLASH_HEIGHT : 600,
-    resizable: !isSplash,
+    resizable: true,
     titleBarStyle: 'hiddenInset',
     icon: iconPath,
     backgroundColor: '#0d1117',
@@ -62,7 +65,8 @@ function createWindow() {
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');
-    if (devConsole) {
+    // devtools only opens after splash (or immediately if noLogo)
+    if (devConsole && noLogo) {
       mainWindow.webContents.openDevTools({ mode: 'bottom' });
     }
   } else {
@@ -99,10 +103,12 @@ ipcMain.handle('app:get-flags', () => ({ noLogo }));
 // Called by renderer when the splash screen "Tovább" button is clicked
 ipcMain.handle('app:splash-done', () => {
   if (!mainWindow) return;
-  mainWindow.setResizable(true);
   mainWindow.setMinimumSize(900, 600);
   mainWindow.setSize(MAIN_WIDTH, MAIN_HEIGHT, true);
   mainWindow.center();
+  if (devConsole) {
+    mainWindow.webContents.openDevTools({ mode: 'bottom' });
+  }
 });
 
 // Connection
@@ -266,6 +272,15 @@ ipcMain.handle('db:get-types', async (_event, connId, schema) => {
   try {
     const result = await dbService.getTypes(connId, schema);
     return { success: true, data: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('db:get-complete-create-script', async (_event, connId, schema, table) => {
+  try {
+    const data = await dbService.getCompleteCreateScript(connId, schema, table);
+    return { success: true, data };
   } catch (err) {
     return { success: false, error: err.message };
   }

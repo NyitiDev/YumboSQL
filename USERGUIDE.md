@@ -1,7 +1,12 @@
-# YumboSQL – Felhasználói kézikönyv
+<p><img src="logo_transparent.png" alt="YumboSQL" width="120" style="vertical-align: middle; margin-right: 12px;" /><strong style="font-size: 3em;">YumboSQL</strong></p>
+
+## Felhasználói kézikönyv
 
 > **YumboSQL** egy macOS-re készült PostgreSQL adminisztrációs asztali kliens.  
-> Verzió: 1.x · Technológia: Electron + React + pg
+> Verzió: 0.1.0
+> Technológia: Electron + React + pg
+
+Szerző: nyiti2@gmail.com
 
 ---
 

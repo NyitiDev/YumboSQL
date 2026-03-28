@@ -41,10 +41,12 @@
       "title": "YumboSQL",
       "sign": false
     },
+    "extraResources": [
+      { "from": "logo_transparent.png", "to": "logo_transparent.png" }
+    ],
     "files": [
       "src/main/**/*",
       "src/renderer/dist/**/*",
-      "logo_transparent.png",
       "build/icon.icns",
       "package.json"
     ],
