@@ -99,7 +99,7 @@ A bal oldali **Sidebar** tartalmazza az Object Explorert. Ez egy fa-struktúráj
 ### Hierarchia
 
 ```
-🖥 user@host:port               ← HostNode
+🖥 user@host:port                ← HostNode
   👤 Roles                       ← Roles csoport
      ├── admin (superuser 🔐)
      └── readonly

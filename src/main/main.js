@@ -12,6 +12,23 @@ const keychainService = new KeychainService();
 
 const isDev = !app.isPackaged;
 const noLogo = process.env.YUMBOSQL_NO_LOGO === '1';
+const devConsole = process.env.YUMBOSQL_DEVCONSOLE === '1';
+
+// ── Simple prefs file (userData/prefs.json) ────────────────────
+const PREFS_PATH = path.join(app.getPath('userData'), 'prefs.json');
+
+function loadPrefs() {
+  try {
+    if (fs.existsSync(PREFS_PATH)) return JSON.parse(fs.readFileSync(PREFS_PATH, 'utf8'));
+  } catch (_) {}
+  return {};
+}
+
+function savePrefs(key, value) {
+  const prefs = loadPrefs();
+  prefs[key] = value;
+  try { fs.writeFileSync(PREFS_PATH, JSON.stringify(prefs, null, 2), 'utf8'); } catch (_) {}
+}
 
 const SPLASH_WIDTH  = 480;
 const SPLASH_HEIGHT = 560;
@@ -45,7 +62,9 @@ function createWindow() {
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');
-    mainWindow.webContents.openDevTools({ mode: 'bottom' });
+    if (devConsole) {
+      mainWindow.webContents.openDevTools({ mode: 'bottom' });
+    }
   } else {
     mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'dist', 'index.html'));
   }
@@ -360,6 +379,16 @@ ipcMain.handle('keychain:delete', async (_event, key) => {
   } catch (err) {
     return { success: false, error: err.message };
   }
+});
+
+// Prefs (language, etc.)
+ipcMain.handle('prefs:get', (_event, key) => {
+  const prefs = loadPrefs();
+  return prefs[key] ?? null;
+});
+
+ipcMain.handle('prefs:set', (_event, key, value) => {
+  savePrefs(key, value);
 });
 
 // File save

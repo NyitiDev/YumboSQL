@@ -49,6 +49,10 @@ contextBridge.exposeInMainWorld('yumbosql', {
   keychainGet: (key) => ipcRenderer.invoke('keychain:get', key),
   keychainDelete: (key) => ipcRenderer.invoke('keychain:delete', key),
 
+  // Prefs (simple persistent key-value, stored in userData/prefs.json)
+  prefsGet: (key) => ipcRenderer.invoke('prefs:get', key),
+  prefsSet: (key, value) => ipcRenderer.invoke('prefs:set', key, value),
+
   // File
   saveSqlFile: (content, defaultName) => ipcRenderer.invoke('file:save-sql', content, defaultName),
 });

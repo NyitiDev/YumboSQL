@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import './ConnectionDialog.css';
 
 const DEFAULT_CONFIG = {
@@ -11,6 +12,7 @@ const DEFAULT_CONFIG = {
 };
 
 export default function ConnectionDialog({ onConnect, onClose }) {
+  const { t } = useI18n();
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [testing, setTesting] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -58,7 +60,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
     const result = await window.yumbosql.testConnection(payload);
     setTesting(false);
     if (result.success) {
-      setTestResult('Sikeres kapcsolat!');
+      setTestResult(t('conn_dialog.test_success'));
     } else {
       setError(result.error);
     }
@@ -89,7 +91,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
     <div className="dialog-overlay">
       <div className="dialog">
         <div className="dialog-header">
-          <h2>Kapcsolódás PostgreSQL szerverhez</h2>
+          <h2>{t('conn_dialog.title')}</h2>
           {onClose && (
             <button className="btn btn-ghost" onClick={onClose}>✕</button>
           )}
@@ -99,7 +101,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
           {/* Connection history */}
           {history.length > 0 && (
             <div className="conn-history">
-              <div className="conn-history-label">Korábbi kapcsolatok</div>
+              <div className="conn-history-label">{t('conn_dialog.history_label')}</div>
               <div className="conn-history-list">
                 {history.map((entry, i) => (
                   <div
@@ -121,7 +123,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
                     <button
                       className="conn-history-remove"
                       onClick={(e) => removeHistory(entry, e)}
-                      title="Törlés"
+                      title={t('conn_dialog.remove_title')}
                     >✕</button>
                   </div>
                 ))}
@@ -130,7 +132,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
           )}
 
           <div className="form-row">
-            <label>Host</label>
+            <label>{t('conn_dialog.field_host')}</label>
             <input
               type="text"
               value={config.host}
@@ -139,7 +141,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
             />
           </div>
           <div className="form-row">
-            <label>Port</label>
+            <label>{t('conn_dialog.field_port')}</label>
             <input
               type="text"
               value={config.port}
@@ -148,7 +150,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
             />
           </div>
           <div className="form-row">
-            <label>Felhasználó</label>
+            <label>{t('conn_dialog.field_user')}</label>
             <input
               type="text"
               value={config.user}
@@ -157,7 +159,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
             />
           </div>
           <div className="form-row">
-            <label>Jelszó</label>
+            <label>{t('conn_dialog.field_password')}</label>
             <input
               type="password"
               value={config.password}
@@ -165,7 +167,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
             />
           </div>
           <div className="form-row">
-            <label>Adatbázis</label>
+            <label>{t('conn_dialog.field_database')}</label>
             <input
               type="text"
               value={config.database}
@@ -180,7 +182,7 @@ export default function ConnectionDialog({ onConnect, onClose }) {
                 checked={config.ssl}
                 onChange={(e) => updateField('ssl', e.target.checked)}
               />
-              SSL kapcsolat
+              {t('conn_dialog.field_ssl')}
             </label>
           </div>
 
@@ -194,14 +196,14 @@ export default function ConnectionDialog({ onConnect, onClose }) {
             onClick={handleTest}
             disabled={testing || connecting}
           >
-            {testing ? 'Tesztelés…' : 'Kapcsolat tesztelése'}
+            {testing ? t('conn_dialog.testing_btn') : t('conn_dialog.test_btn')}
           </button>
           <button
             className="btn btn-primary"
             onClick={handleConnect}
             disabled={testing || connecting}
           >
-            {connecting ? 'Kapcsolódás…' : 'Kapcsolódás'}
+            {connecting ? t('conn_dialog.connecting_btn') : t('conn_dialog.connect_btn')}
           </button>
         </div>
       </div>

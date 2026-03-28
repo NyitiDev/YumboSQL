@@ -1,15 +1,18 @@
 import React, { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { EditorView, keymap, placeholder } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Compartment } from '@codemirror/state';
 import { sql, PostgreSQL } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { autocompletion } from '@codemirror/autocomplete';
+import { useI18n } from '../i18n/I18nContext';
 import './SqlEditor.css';
 
 const SqlEditor = forwardRef(function SqlEditor({ onRun, onSave, initialValue }, ref) {
+  const { t } = useI18n();
   const editorRef = useRef(null);
   const viewRef = useRef(null);
+  const placeholderCompartment = useRef(new Compartment());
   const onRunRef = useRef(onRun);
   const onSaveRef = useRef(onSave);
   onRunRef.current = onRun;
@@ -56,7 +59,7 @@ const SqlEditor = forwardRef(function SqlEditor({ onRun, onSave, initialValue },
         sql({ dialect: PostgreSQL }),
         autocompletion(),
         oneDark,
-        placeholder('SQL lekérdezés írása… (Cmd+Enter a futtatáshoz)'),
+        placeholderCompartment.current.of(placeholder(t('sql_editor.placeholder'))),
         EditorView.theme({
           '&': {
             height: '100%',
@@ -100,15 +103,23 @@ const SqlEditor = forwardRef(function SqlEditor({ onRun, onSave, initialValue },
     };
   }, []);
 
+  // Live-update placeholder when language changes
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({
+      effects: placeholderCompartment.current.reconfigure(placeholder(t('sql_editor.placeholder'))),
+    });
+  }, [t]);
+
   return (
     <div className="sql-editor-wrapper">
       <div className="sql-editor-toolbar">
         <button className="btn btn-primary btn-sm" onClick={runQuery}>
-          ▶ Futtatás
+          {t('sql_editor.run_btn')}
         </button>
         {onSave && (
-          <button className="btn btn-ghost btn-sm" onClick={onSave} title="Mentés (Cmd+S)">
-            💾 Mentés
+          <button className="btn btn-ghost btn-sm" onClick={onSave} title={t('sql_editor.save_title')}>
+            {t('sql_editor.save_btn')}
           </button>
         )}
         <span className="sql-editor-hint">Cmd+Enter</span>

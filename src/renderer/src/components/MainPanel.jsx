@@ -1,9 +1,11 @@
 import React, { useState, useRef, useCallback } from 'react';
 import SqlEditor from './SqlEditor';
 import DataGrid from './DataGrid';
+import { useI18n } from '../i18n/I18nContext';
 import './MainPanel.css';
 
 export default function MainPanel({ defaultConnId, connections, tabs, activeTabId, onSelectTab, onCloseTab, onOpenTab }) {
+  const { t } = useI18n();
   const [queryResult, setQueryResult] = useState(null);
   const [queryError, setQueryError] = useState(null);
   const [queryTime, setQueryTime] = useState(null);
@@ -81,7 +83,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
           className={`panel-tab ${isEditorActive ? 'active' : ''}`}
           onClick={() => onSelectTab('editor')}
         >
-          SQL Editor
+          {t('panel.tab_sql_editor')}
         </button>
         {tabs.map((tab) => (
           <button
@@ -93,7 +95,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
             <span
               className="tab-close"
               onClick={(e) => { e.stopPropagation(); onCloseTab(tab.id); }}
-              title="Bezárás"
+              title={t('panel.tab_close_title')}
             >✕</span>
           </button>
         ))}
@@ -139,7 +141,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
               <>
                 <div className="results-status">
                   <span className="badge badge-success">
-                    {queryResult.command} — {queryResult.rowCount ?? queryResult.rows.length} sor
+                    {queryResult.command} — {queryResult.rowCount ?? queryResult.rows.length} {t('panel.results_row_suffix')}
                   </span>
                   <span className="results-time">{queryTime} ms</span>
                 </div>
@@ -153,7 +155,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
             )}
             {!queryResult && !queryError && (
               <div className="results-placeholder">
-                Nyomj Cmd+Enter a lekérdezés futtatásához
+                {t('panel.query_placeholder')}
               </div>
             )}
           </div>
@@ -208,6 +210,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
 
 /* Inline table viewer for Object Explorer selection */
 function TableView({ connId, schema, table, onEditRow }) {
+  const { t } = useI18n();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -228,7 +231,7 @@ function TableView({ connId, schema, table, onEditRow }) {
   };
 
   if (loading && !data) {
-    return <div className="results-placeholder">Betöltés…</div>;
+    return <div className="results-placeholder">{t('panel.loading')}</div>;
   }
 
   if (!data) return null;
@@ -237,7 +240,7 @@ function TableView({ connId, schema, table, onEditRow }) {
     <div className="table-view">
       <div className="results-status">
         <span className="badge badge-info">
-          {schema}.{table} — {data.total} sor összesen
+          {schema}.{table} — {data.total} {t('panel.pager_total_suffix')}
         </span>
         <div className="pager">
           <button
@@ -245,7 +248,7 @@ function TableView({ connId, schema, table, onEditRow }) {
             disabled={offset === 0}
             onClick={() => load(Math.max(0, offset - LIMIT))}
           >
-            ← Előző
+            {t('panel.pager_prev')}
           </button>
           <span className="pager-info">
             {offset + 1}–{Math.min(offset + LIMIT, data.total)} / {data.total}
@@ -255,7 +258,7 @@ function TableView({ connId, schema, table, onEditRow }) {
             disabled={offset + LIMIT >= data.total}
             onClick={() => load(offset + LIMIT)}
           >
-            Következő →
+            {t('panel.pager_next')}
           </button>
         </div>
       </div>
@@ -266,6 +269,7 @@ function TableView({ connId, schema, table, onEditRow }) {
 
 /* Structure editor – loads ALTER TABLE DDL into a SqlEditor */
 function StructureView({ connId, schema, table, editorRef, onSave }) {
+  const { t } = useI18n();
   const [ddl, setDdl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [queryResult, setQueryResult] = useState(null);
@@ -295,7 +299,7 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
   };
 
   if (loading) {
-    return <div className="results-placeholder">Táblaszerkezet betöltése…</div>;
+    return <div className="results-placeholder">{t('panel.structure_loading')}</div>;
   }
 
   return (
@@ -311,14 +315,14 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
         {queryResult && (
           <div className="results-status">
             <span className="badge badge-success">
-              {queryResult.command || 'OK'} — sikeres
+              {queryResult.command || 'OK'} — {t('panel.results_ok_suffix')}
             </span>
             <span className="results-time">{queryTime} ms</span>
           </div>
         )}
         {!queryResult && !queryError && (
           <div className="results-placeholder">
-            Töröld a kommentet a kívánt művelet elől, majd Cmd+Enter
+            {t('panel.structure_placeholder')}
           </div>
         )}
       </div>
@@ -371,7 +375,7 @@ function ScriptView({ connId, tab, editorRef, onSave }) {
         )}
         {!queryResult && !queryError && (
           <div className="results-placeholder">
-            Töltsd ki az értékeket, majd Cmd+Enter a futtatáshoz
+            {t('panel.script_placeholder')}
           </div>
         )}
       </div>
@@ -381,6 +385,7 @@ function ScriptView({ connId, tab, editorRef, onSave }) {
 
 /* New record form – loads columns and renders typed inputs */
 function NewRecordView({ connId, schema, table }) {
+  const { t } = useI18n();
   const [columns, setColumns] = useState(null);
   const [loading, setLoading] = useState(true);
   const [values, setValues] = useState({});
@@ -428,13 +433,13 @@ function NewRecordView({ connId, schema, table }) {
     }
   };
 
-  if (loading) return <div className="results-placeholder">Mezők betöltése…</div>;
-  if (!columns) return <div className="results-placeholder">Nem sikerült betölteni a mezőket.</div>;
+  if (loading) return <div className="results-placeholder">{t('panel.fields_loading')}</div>;
+  if (!columns) return <div className="results-placeholder">{t('panel.fields_error')}</div>;
 
   return (
     <div className="new-record-view">
       <div className="new-record-header">
-        <span className="new-record-title">＋ Új rekord — <span className="new-record-table">{schema}.{table}</span></span>
+        <span className="new-record-title">{t('panel.new_record_prefix')} — <span className="new-record-table">{schema}.{table}</span></span>
       </div>
       <div className="new-record-form">
         {columns.map((col) => (
@@ -442,8 +447,8 @@ function NewRecordView({ connId, schema, table }) {
             <div className="new-record-label">
               <span className="new-record-col-name">{col.name}</span>
               <span className="new-record-col-type">{col.type}</span>
-              {col.nullable === 'NO' && !isAutoFill(col) && <span className="new-record-required" title="Kötelező">*</span>}
-              {isAutoFill(col) && <span className="new-record-auto" title="Automatikus töltés">auto</span>}
+              {col.nullable === 'NO' && !isAutoFill(col) && <span className="new-record-required" title={t('panel.required_title')}>*</span>}
+              {isAutoFill(col) && <span className="new-record-auto" title={t('panel.auto_title')}>auto</span>}
             </div>
             <ColumnInput
               col={col}
@@ -456,9 +461,9 @@ function NewRecordView({ connId, schema, table }) {
       </div>
       <div className="new-record-actions">
         {saveError && <span className="new-record-error">{saveError}</span>}
-        {saveSuccess && <span className="new-record-ok">✓ Rekord mentve</span>}
+        {saveSuccess && <span className="new-record-ok">{t('panel.record_saved')}</span>}
         <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
-          {saving ? 'Mentés…' : 'Mentés'}
+          {saving ? t('panel.saving_btn') : t('panel.save_btn')}
         </button>
       </div>
     </div>
@@ -486,6 +491,7 @@ function formatValueForInput(col, value) {
 
 /* Edit record form – pre-filled from a row, uses UPDATE on save */
 function EditRecordView({ connId, schema, table, rowData }) {
+  const { t } = useI18n();
   const [columns, setColumns] = useState(null);
   const [pkCols, setPkCols] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -523,7 +529,7 @@ function EditRecordView({ connId, schema, table, rowData }) {
 
   const handleSubmit = async () => {
     if (pkCols.length === 0) {
-      setSaveError('Nem található elsődleges kulcs – a szerkesztés nem lehetséges.');
+      setSaveError(t('panel.no_pk_save_error'));
       return;
     }
     setSaving(true);
@@ -540,15 +546,15 @@ function EditRecordView({ connId, schema, table, rowData }) {
     }
   };
 
-  if (loading) return <div className="results-placeholder">Mezők betöltése…</div>;
-  if (!columns) return <div className="results-placeholder">Nem sikerült betölteni a mezőket.</div>;
+  if (loading) return <div className="results-placeholder">{t('panel.fields_loading')}</div>;
+  if (!columns) return <div className="results-placeholder">{t('panel.fields_error')}</div>;
 
   return (
     <div className="new-record-view">
       <div className="new-record-header">
-        <span className="new-record-title">✏ Szerkesztés — <span className="new-record-table">{schema}.{table}</span></span>
+        <span className="new-record-title">{t('panel.edit_record_prefix')} — <span className="new-record-table">{schema}.{table}</span></span>
         {pkCols.length === 0 && (
-          <span className="new-record-error" style={{ marginLeft: 12 }}>Nincs PK – a mentés nem elérhető</span>
+          <span className="new-record-error" style={{ marginLeft: 12 }}>{t('panel.no_pk_warning')}</span>
         )}
       </div>
       <div className="new-record-form">
@@ -560,9 +566,9 @@ function EditRecordView({ connId, schema, table, rowData }) {
               <div className="new-record-label">
                 <span className="new-record-col-name">{col.name}</span>
                 <span className="new-record-col-type">{col.type}</span>
-                {col.nullable === 'NO' && !auto && !isPk && <span className="new-record-required" title="Kötelező">*</span>}
-                {isPk && <span className="new-record-pk" title="Elsődleges kulcs">PK</span>}
-                {auto && <span className="new-record-auto" title="Automatikus töltés">auto</span>}
+                {col.nullable === 'NO' && !auto && !isPk && <span className="new-record-required" title={t('panel.required_title')}>*</span>}
+                {isPk && <span className="new-record-pk" title={t('panel.pk_title')}>PK</span>}
+                {auto && <span className="new-record-auto" title={t('panel.auto_title')}>auto</span>}
               </div>
               <ColumnInput
                 col={col}
@@ -576,9 +582,9 @@ function EditRecordView({ connId, schema, table, rowData }) {
       </div>
       <div className="new-record-actions">
         {saveError && <span className="new-record-error">{saveError}</span>}
-        {saveSuccess && <span className="new-record-ok">✓ Rekord mentve</span>}
+        {saveSuccess && <span className="new-record-ok">{t('panel.record_saved')}</span>}
         <button className="btn btn-primary" onClick={handleSubmit} disabled={saving || pkCols.length === 0}>
-          {saving ? 'Mentés…' : 'Mentés'}
+          {saving ? t('panel.saving_btn') : t('panel.save_btn')}
         </button>
       </div>
     </div>
@@ -586,6 +592,7 @@ function EditRecordView({ connId, schema, table, rowData }) {
 }
 
 function ColumnInput({ col, value, onChange, disabled }) {
+  const { t } = useI18n();
   const type = col.type.toLowerCase();
   const cls = `new-record-input${disabled ? ' new-record-input-disabled' : ''}`;
 
@@ -596,7 +603,7 @@ function ColumnInput({ col, value, onChange, disabled }) {
         className={`${cls} new-record-text`}
         value={col.default_value || ''}
         disabled
-        placeholder="automatikus"
+        placeholder={t('panel.auto_placeholder')}
       />
     );
   }
@@ -605,7 +612,7 @@ function ColumnInput({ col, value, onChange, disabled }) {
   if (type === 'boolean') {
     return (
       <select className={`${cls} new-record-select`} value={value} onChange={(e) => onChange(e.target.value)}>
-        <option value="">(NULL)</option>
+        <option value="">{t('panel.bool_null_option')}</option>
         <option value="true">true</option>
         <option value="false">false</option>
       </select>

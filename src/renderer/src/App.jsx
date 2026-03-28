@@ -4,9 +4,11 @@ import Sidebar from './components/Sidebar';
 import MainPanel from './components/MainPanel';
 import ConnectionDialog from './components/ConnectionDialog';
 import SplashScreen from './components/SplashScreen';
+import { useI18n } from './i18n/I18nContext';
 import './styles/App.css';
 
 export default function App() {
+  const { t } = useI18n();
   const [connections, setConnections] = useState([]);  // [{ connId, config }]
   const [showConnDialog, setShowConnDialog] = useState(false);
   // null = loading flags, true = show splash, false = skip splash
@@ -77,9 +79,9 @@ export default function App() {
     const labelMap = {
       structure: `✏ ${schema}.${table} DDL`,
       script: `📝 ${schema}.${table}${kindLabel}`,
-      table: `${schema}.${table} Adatok`,
+      table: `${schema}.${table} ${t('panel.tab_data_suffix')}`,
       newrecord: `＋ ${schema}.${table}`,
-      editrecord: `✏ ${schema}.${table} Szerk.`,
+      editrecord: `✏ ${schema}.${table} ${t('panel.tab_edit_suffix')}`,
     };
     const label = labelMap[type] || `${schema}.${table}`;
     const isAlwaysUnique = type === 'script' || type === 'editrecord';
@@ -102,7 +104,7 @@ export default function App() {
     } else {
       setActiveTabId(id);
     }
-  }, []);
+  }, [t]);
 
   const handleCloseTab = useCallback((tabId) => {
     setTabs((prev) => {
@@ -160,9 +162,9 @@ export default function App() {
         )}
         {connections.length === 0 && !showConnDialog && (
           <div className="empty-state">
-            <p>Nincs aktív kapcsolat</p>
+            <p>{t('sidebar.no_connections')}</p>
             <button className="btn btn-primary" onClick={() => setShowConnDialog(true)}>
-              Kapcsolódás
+              {t('app.connect_btn')}
             </button>
           </div>
         )}

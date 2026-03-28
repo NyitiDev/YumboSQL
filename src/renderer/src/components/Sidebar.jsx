@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import './Sidebar.css';
 
 // ── Expand/collapse helper ─────────────────────────────────────
@@ -29,6 +30,7 @@ function TreeNode({ icon, label, children, defaultOpen, onClickLabel, onContextM
 
 // ── Lazy-loaded group ──────────────────────────────────────────
 function LazyGroup({ icon, label, loader, renderItems, refreshKey, onContextMenu, refreshRef }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -74,8 +76,8 @@ function LazyGroup({ icon, label, loader, renderItems, refreshKey, onContextMenu
       </div>
       {open && (
         <div className="tree-children">
-          {loading && <div className="tree-loading">Betöltés…</div>}
-          {items && items.length === 0 && <div className="tree-empty">Üres</div>}
+          {loading && <div className="tree-loading">{t('sidebar.loading')}</div>}
+          {items && items.length === 0 && <div className="tree-empty">{t('sidebar.empty')}</div>}
           {items && items.length > 0 && renderItems(items)}
         </div>
       )}
@@ -85,6 +87,7 @@ function LazyGroup({ icon, label, loader, renderItems, refreshKey, onContextMenu
 
 // ── Main Sidebar ───────────────────────────────────────────────
 export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddConnection, width }) {
+  const { t } = useI18n();
   const [contextMenu, setContextMenu] = useState(null); // { x, y, connId, schema, table }
   const [sqlSubOpen, setSqlSubOpen] = useState(false);
   const [groupCtx, setGroupCtx] = useState(null); // { x, y, connId, schema, kind }
@@ -210,15 +213,15 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
         <button
           className="btn btn-ghost btn-sm"
           onClick={onAddConnection}
-          title="Host hozzáadása"
+          title={t('sidebar.add_host_title')}
         >
-          ＋ Host hozzáadása
+          {t('sidebar.add_host_btn')}
         </button>
       </div>
 
       <div className="sidebar-tree">
         {connections.length === 0 && (
-          <div className="sidebar-empty">Nincs aktív kapcsolat</div>
+          <div className="sidebar-empty">{t('sidebar.no_connections')}</div>
         )}
         {connections.map(({ connId, config }) => (
           <HostNode
@@ -241,13 +244,13 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
           onClick={(e) => e.stopPropagation()}
         >
           <div className="ctx-menu-item" onClick={() => { onOpenTab(contextMenu.connId, contextMenu.schema, contextMenu.table, 'table'); setContextMenu(null); }}>
-            <span className="ctx-icon">⊞</span> Adatok listája
+            <span className="ctx-icon">⊞</span> {t('sidebar.ctx.data_list')}
           </div>
           <div className="ctx-menu-item" onClick={() => { onOpenTab(contextMenu.connId, contextMenu.schema, contextMenu.table, 'structure'); setContextMenu(null); }}>
-            <span className="ctx-icon">✏</span> Táblaszerkezet
+            <span className="ctx-icon">✏</span> {t('sidebar.ctx.structure')}
           </div>
           <div className="ctx-menu-item" onClick={() => { onOpenTab(contextMenu.connId, contextMenu.schema, contextMenu.table, 'newrecord'); setContextMenu(null); }}>
-            <span className="ctx-icon">＋</span> Új rekord
+            <span className="ctx-icon">＋</span> {t('sidebar.ctx.new_record')}
           </div>
           <div className="ctx-menu-sep" />
           <div
@@ -255,7 +258,7 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
             onMouseEnter={() => setSqlSubOpen(true)}
             onMouseLeave={() => setSqlSubOpen(false)}
           >
-            <span className="ctx-icon">⌨</span> SQL
+            <span className="ctx-icon">⌨</span> {t('sidebar.ctx.sql')}
             <span className="ctx-sub-arrow">▸</span>
             {sqlSubOpen && (
               <div className="ctx-submenu">
@@ -269,7 +272,7 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
           </div>
           <div className="ctx-menu-sep" />
           <div className="ctx-menu-item" onClick={() => setContextMenu(null)}>
-            <span className="ctx-icon">↻</span> Frissítés
+            <span className="ctx-icon">↻</span> {t('sidebar.ctx.refresh')}
           </div>
         </div>
       )}
@@ -282,10 +285,10 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
           onClick={(e) => e.stopPropagation()}
         >
           <div className="ctx-menu-item" onClick={handleGroupCreate}>
-            <span className="ctx-icon">＋</span> Létrehozás
+            <span className="ctx-icon">＋</span> {t('sidebar.ctx.create')}
           </div>
           <div className="ctx-menu-item" onClick={handleGroupRefresh}>
-            <span className="ctx-icon">↻</span> Frissítés
+            <span className="ctx-icon">↻</span> {t('sidebar.ctx.refresh')}
           </div>
         </div>
       )}
@@ -295,6 +298,7 @@ export default function Sidebar({ connections, onOpenTab, onDisconnect, onAddCon
 
 // ── Host node (one per connection) ─────────────────────────────
 function HostNode({ connId, config, onOpenTab, onDisconnect, onTableContext, onGroupContext }) {
+  const { t } = useI18n();
   const [hostCtxMenu, setHostCtxMenu] = useState(null);
   const rolesRefresh = useRef(null);
   const dbsRefresh = useRef(null);
@@ -323,7 +327,7 @@ function HostNode({ connId, config, onOpenTab, onDisconnect, onTableContext, onG
         {/* Roles – server level */}
         <LazyGroup
           icon="👤"
-          label="Roles"
+          label={t('sidebar.group_roles')}
           loader={() => window.yumbosql.getRoles(connId)}
           refreshRef={rolesRefresh}
           onContextMenu={(e) => {
@@ -346,7 +350,7 @@ function HostNode({ connId, config, onOpenTab, onDisconnect, onTableContext, onG
         {/* Databases */}
         <LazyGroup
           icon="🛢"
-          label="Databases"
+          label={t('sidebar.group_databases')}
           loader={() => window.yumbosql.getDatabases(connId)}
           refreshRef={dbsRefresh}
           onContextMenu={(e) => {
@@ -382,13 +386,13 @@ function HostNode({ connId, config, onOpenTab, onDisconnect, onTableContext, onG
             else if (hostCtxMenu.kind === 'databases') dbsRefresh.current?.();
             setHostCtxMenu(null);
           }}>
-            <span className="ctx-icon">↻</span> Frissítés
+            <span className="ctx-icon">↻</span> {t('sidebar.ctx.refresh')}
           </div>
           {hostCtxMenu.kind === 'host' && (
             <>
               <div className="ctx-menu-sep" />
               <div className="ctx-menu-item ctx-item-danger" onClick={() => { onDisconnect(connId); setHostCtxMenu(null); }}>
-                <span className="ctx-icon">⏻</span> Lekapcsolódás
+                <span className="ctx-icon">⏻</span> {t('sidebar.ctx.disconnect')}
               </div>
             </>
           )}
@@ -400,6 +404,7 @@ function HostNode({ connId, config, onOpenTab, onDisconnect, onTableContext, onG
 
 // ── Database node ──────────────────────────────────────────────
 function DatabaseNode({ parentConnId, dbName, isCurrentDb, onOpenTab, onTableContext, onGroupContext }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(isCurrentDb);
   const [dbConnId, setDbConnId] = useState(isCurrentDb ? parentConnId : null);
   const [schemas, setSchemas] = useState(null);
@@ -469,12 +474,12 @@ function DatabaseNode({ parentConnId, dbName, isCurrentDb, onOpenTab, onTableCon
         <span className="tree-arrow">{open ? '▾' : '▸'}</span>
         <span className="tree-icon">🗄</span>
         <span className="tree-label">{dbName}</span>
-        {isCurrentDb && <span className="tree-badge badge-accent">aktív</span>}
+        {isCurrentDb && <span className="tree-badge badge-accent">{t('sidebar.badge_active')}</span>}
       </div>
 
       {open && (
         <div className="tree-children">
-          {loading && <div className="tree-loading">Betöltés…</div>}
+          {loading && <div className="tree-loading">{t('sidebar.loading')}</div>}
           {error && <div className="tree-error">⚠ {error}</div>}
 
           {!loading && !error && schemas !== null && dbConnId && (
@@ -497,7 +502,7 @@ function DatabaseNode({ parentConnId, dbName, isCurrentDb, onOpenTab, onTableCon
               />
 
               {/* Schemas */}
-              {schemas.length === 0 && <div className="tree-empty">Nincsenek sémák</div>}
+              {schemas.length === 0 && <div className="tree-empty">{t('sidebar.no_schemas')}</div>}
               {schemas.map((schema) => (
                 <SchemaNode
                   key={schema.name}
@@ -524,7 +529,7 @@ function DatabaseNode({ parentConnId, dbName, isCurrentDb, onOpenTab, onTableCon
           onClick={(e) => e.stopPropagation()}
         >
           <div className="ctx-menu-item" onClick={() => { handleRefresh(); setDbCtxMenu(null); }}>
-            <span className="ctx-icon">↻</span> Frissítés
+            <span className="ctx-icon">↻</span> {t('sidebar.ctx.refresh')}
           </div>
         </div>
       )}
@@ -534,6 +539,7 @@ function DatabaseNode({ parentConnId, dbName, isCurrentDb, onOpenTab, onTableCon
 
 // ── Schema node ────────────────────────────────────────────────
 function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext, defaultOpen, refreshKey, onRefresh }) {
+  const { t } = useI18n();
   const tableRefresh = useRef(null);
   const viewRefresh = useRef(null);
   const matviewRefresh = useRef(null);
@@ -564,7 +570,7 @@ function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext,
     >
       <LazyGroup
         icon="⊞"
-        label="Táblák"
+        label={t('sidebar.group_tables')}
         loader={() => window.yumbosql.getTables(connId, schema)}
         refreshKey={refreshKey}
         refreshRef={tableRefresh}
@@ -587,7 +593,7 @@ function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext,
 
       <LazyGroup
         icon="◫"
-        label="Nézetek"
+        label={t('sidebar.group_views')}
         loader={() => window.yumbosql.getViews(connId, schema)}
         refreshRef={viewRefresh}
         onContextMenu={makeGroupCtx('view', viewRefresh)}
@@ -608,7 +614,7 @@ function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext,
 
       <LazyGroup
         icon="◨"
-        label="Mat. nézetek"
+        label={t('sidebar.group_matviews')}
         loader={() => window.yumbosql.getMaterializedViews(connId, schema)}
         refreshRef={matviewRefresh}
         onContextMenu={makeGroupCtx('matview', matviewRefresh)}
@@ -629,7 +635,7 @@ function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext,
 
       <LazyGroup
         icon="ƒ"
-        label="Függvények"
+        label={t('sidebar.group_functions')}
         loader={() => window.yumbosql.getFunctions(connId, schema)}
         refreshRef={funcRefresh}
         onContextMenu={makeGroupCtx('function', funcRefresh)}
@@ -649,7 +655,7 @@ function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext,
 
       <LazyGroup
         icon="#"
-        label="Szekvenciák"
+        label={t('sidebar.group_sequences')}
         loader={() => window.yumbosql.getSequences(connId, schema)}
         refreshRef={seqRefresh}
         onContextMenu={makeGroupCtx('sequence', seqRefresh)}
@@ -666,7 +672,7 @@ function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext,
 
       <LazyGroup
         icon="◇"
-        label="Típusok"
+        label={t('sidebar.group_types')}
         loader={() => window.yumbosql.getTypes(connId, schema)}
         refreshRef={typeRefresh}
         onContextMenu={makeGroupCtx('type', typeRefresh)}
@@ -691,7 +697,7 @@ function SchemaNode({ connId, schema, onOpenTab, onTableContext, onGroupContext,
         onClick={(e) => e.stopPropagation()}
       >
         <div className="ctx-menu-item" onClick={() => { if (onRefresh) onRefresh(); setSchemaCtxMenu(null); }}>
-          <span className="ctx-icon">↻</span> Frissítés
+          <span className="ctx-icon">↻</span> {t('sidebar.ctx.refresh')}
         </div>
       </div>
     )}

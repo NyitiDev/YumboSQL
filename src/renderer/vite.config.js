@@ -9,5 +9,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    fs: {
+      // Allow importing files from the project root (USERGUIDE.md is 2 levels up)
+      allow: ['../..'],
+    },
   },
 });
