@@ -1,12 +1,32 @@
 import React, { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { EditorView, keymap, placeholder } from '@codemirror/view';
-import { EditorState, Compartment } from '@codemirror/state';
+import { EditorView, keymap, placeholder, Decoration } from '@codemirror/view';
+import { EditorState, Compartment, StateEffect, StateField } from '@codemirror/state';
 import { sql, PostgreSQL } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { autocompletion } from '@codemirror/autocomplete';
 import { useI18n } from '../i18n/I18nContext';
 import './SqlEditor.css';
+
+const setErrorLineEffect = StateEffect.define();
+const clearErrorEffect = StateEffect.define();
+const errorLineField = StateField.define({
+  create() { return Decoration.none; },
+  update(deco, tr) {
+    deco = deco.map(tr.changes);
+    for (const effect of tr.effects) {
+      if (effect.is(clearErrorEffect)) return Decoration.none;
+      if (effect.is(setErrorLineEffect)) {
+        const lineNum = effect.value;
+        if (lineNum < 1 || lineNum > tr.state.doc.lines) return Decoration.none;
+        const line = tr.state.doc.line(lineNum);
+        return Decoration.set([Decoration.line({ class: 'cm-error-line' }).range(line.from)]);
+      }
+    }
+    return deco;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
 
 const SqlEditor = forwardRef(function SqlEditor({ onRun, onSave, initialValue }, ref) {
   const { t } = useI18n();
@@ -20,6 +40,20 @@ const SqlEditor = forwardRef(function SqlEditor({ onRun, onSave, initialValue },
 
   useImperativeHandle(ref, () => ({
     getContent: () => viewRef.current ? viewRef.current.state.doc.toString() : '',
+    setErrorLine: (lineNum) => {
+      if (!viewRef.current) return;
+      const view = viewRef.current;
+      view.dispatch({ effects: setErrorLineEffect.of(lineNum) });
+      const doc = view.state.doc;
+      if (lineNum >= 1 && lineNum <= doc.lines) {
+        const line = doc.line(lineNum);
+        view.dispatch({ effects: EditorView.scrollIntoView(line.from, { y: 'center' }) });
+      }
+    },
+    clearError: () => {
+      if (!viewRef.current) return;
+      viewRef.current.dispatch({ effects: clearErrorEffect.of(null) });
+    },
   }), []);
 
   const runQuery = useCallback(() => {
@@ -88,6 +122,7 @@ const SqlEditor = forwardRef(function SqlEditor({ onRun, onSave, initialValue },
           },
         }),
         EditorView.lineWrapping,
+        errorLineField,
       ],
     });
 

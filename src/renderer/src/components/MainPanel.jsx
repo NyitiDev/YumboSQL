@@ -34,6 +34,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
   const { t } = useI18n();
   const [queryResult, setQueryResult] = useState(null);
   const [queryError, setQueryError] = useState(null);
+  const [queryErrorLine, setQueryErrorLine] = useState(null);
   const [queryTime, setQueryTime] = useState(null);
   // connId used by the SQL editor tab (can be selected when multiple connections exist)
   const [editorConnId, setEditorConnId] = useState(defaultConnId);
@@ -100,6 +101,9 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
   const handleRunQuery = async (sql) => {
     setQueryError(null);
     setQueryResult(null);
+    setQueryErrorLine(null);
+    const edRef = editorRefs.current['editor'];
+    edRef?.current?.clearError?.();
     const start = performance.now();
     const result = await window.yumbosql.query(editorConnId, sql);
     const elapsed = Math.round(performance.now() - start);
@@ -108,6 +112,11 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
       setQueryResult(result.data);
     } else {
       setQueryError(result.error);
+      if (result.errorPosition) {
+        const line = sql.substring(0, result.errorPosition - 1).split('\n').length;
+        setQueryErrorLine(line);
+        edRef?.current?.setErrorLine?.(line);
+      }
     }
   };
 
@@ -185,6 +194,7 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
             {queryError && (
               <div className="query-error">
                 <span className="error-icon">✕</span>
+                {queryErrorLine && <span className="query-error-line">Line {queryErrorLine}</span>}
                 {queryError}
               </div>
             )}
@@ -192,11 +202,11 @@ export default function MainPanel({ defaultConnId, connections, tabs, activeTabI
               <>
                 <div className="results-status">
                   <span className="badge badge-success">
-                    {queryResult.command} — {queryResult.rowCount ?? queryResult.rows.length} {t('panel.results_row_suffix')}
+                    {queryResult.command} — {queryResult.rowCount ?? queryResult.rows?.length ?? 0} {t('panel.results_row_suffix')}
                   </span>
                   <span className="results-time">{queryTime} ms</span>
                 </div>
-                {queryResult.rows.length > 0 && (
+                {queryResult.rows?.length > 0 && (
                   <DataGrid
                     fields={queryResult.fields}
                     rows={queryResult.rows}
@@ -325,6 +335,7 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
   const [loading, setLoading] = useState(true);
   const [queryResult, setQueryResult] = useState(null);
   const [queryError, setQueryError] = useState(null);
+  const [queryErrorLine, setQueryErrorLine] = useState(null);
   const [queryTime, setQueryTime] = useState(null);
   const { fraction, layoutRef: splitRef, handleDividerMouseDown } = useSplitPane(0.4);
 
@@ -339,6 +350,8 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
   const handleRunQuery = async (sql) => {
     setQueryError(null);
     setQueryResult(null);
+    setQueryErrorLine(null);
+    editorRef?.current?.clearError?.();
     const start = performance.now();
     const result = await window.yumbosql.query(connId, sql);
     const elapsed = Math.round(performance.now() - start);
@@ -347,6 +360,11 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
       setQueryResult(result.data);
     } else {
       setQueryError(result.error);
+      if (result.errorPosition) {
+        const line = sql.substring(0, result.errorPosition - 1).split('\n').length;
+        setQueryErrorLine(line);
+        editorRef?.current?.setErrorLine?.(line);
+      }
     }
   };
 
@@ -364,6 +382,7 @@ function StructureView({ connId, schema, table, editorRef, onSave }) {
         {queryError && (
           <div className="query-error">
             <span className="error-icon">✕</span>
+            {queryErrorLine && <span className="query-error-line">Line {queryErrorLine}</span>}
             {queryError}
           </div>
         )}
@@ -390,12 +409,15 @@ function ScriptView({ connId, tab, editorRef, onSave }) {
   const { t } = useI18n();
   const [queryResult, setQueryResult] = useState(null);
   const [queryError, setQueryError] = useState(null);
+  const [queryErrorLine, setQueryErrorLine] = useState(null);
   const [queryTime, setQueryTime] = useState(null);
   const { fraction, layoutRef: splitRef, handleDividerMouseDown } = useSplitPane(0.4);
 
   const handleRunQuery = async (sql) => {
     setQueryError(null);
     setQueryResult(null);
+    setQueryErrorLine(null);
+    editorRef?.current?.clearError?.();
     const start = performance.now();
     const result = await window.yumbosql.query(connId, sql);
     const elapsed = Math.round(performance.now() - start);
@@ -404,6 +426,11 @@ function ScriptView({ connId, tab, editorRef, onSave }) {
       setQueryResult(result.data);
     } else {
       setQueryError(result.error);
+      if (result.errorPosition) {
+        const line = sql.substring(0, result.errorPosition - 1).split('\n').length;
+        setQueryErrorLine(line);
+        editorRef?.current?.setErrorLine?.(line);
+      }
     }
   };
 
@@ -417,6 +444,7 @@ function ScriptView({ connId, tab, editorRef, onSave }) {
         {queryError && (
           <div className="query-error">
             <span className="error-icon">✕</span>
+            {queryErrorLine && <span className="query-error-line">Line {queryErrorLine}</span>}
             {queryError}
           </div>
         )}

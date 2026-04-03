@@ -145,7 +145,7 @@ ipcMain.handle('db:query', async (_event, connId, sql) => {
     const result = await dbService.query(connId, sql);
     return { success: true, data: result };
   } catch (err) {
-    return { success: false, error: err.message };
+    return { success: false, error: err.message, errorPosition: err.position ? parseInt(err.position, 10) : null };
   }
 });
 
